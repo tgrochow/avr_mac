@@ -2,7 +2,7 @@
 #define SERIAL_UTIL_H
 
 #define F_CPU 16000000
-#define BAUD 2400UL
+#define BAUD 9600UL
 #define UBRR_BAUD ((F_CPU/(16UL*BAUD))-1)
 
 #include <avr/io.h>
