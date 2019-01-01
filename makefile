@@ -7,7 +7,7 @@ BAUD=-B115200
 BINDIR=./bin
 OBJDIR=./build
 SRCDIR=./src
-SOURCES=main.c
+SOURCES=$(notdir $(wildcard $(SRCDIR)/*.c))
 OBJECTS=$(addprefix $(OBJDIR)/, $(SOURCES:.c=.o))
 CFLAGS=-c -Os
 LDFLAGS=
@@ -28,6 +28,12 @@ $(OBJDIR)/%.o : $(SRCDIR)/%.c
 program: hex
 	avrdude -p$(MCU) $(PORT) $(BAUD) -c$(PROGRAMMER) -Uflash:w:$(BINDIR)/$(TARGET).hex:a
 
+project_structure:
+	mkdir -p $(OBJDIR) $(BINDIR)
+
+size:
+	avr-size --mcu=$(MCU) -C $(BINDIR)/$(TARGET).elf
+
 clean: clean_tmp clean_bin
 
 clean_tmp:
@@ -37,5 +43,3 @@ clean_tmp:
 clean_bin:
 	rm -rf $(BINDIR)/*.hex
 
-project_structure:
-	mkdir -p $(OBJDIR) $(BINDIR)
