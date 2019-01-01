@@ -1,5 +1,5 @@
-#ifndef UART_UTIL_H
-#define UART_UTIL_H
+#ifndef SERIAL_UTIL_H
+#define SERIAL_UTIL_H
 
 #define F_CPU 16000000
 #define BAUD 2400UL
@@ -12,7 +12,7 @@
 
 #define UBRR_BAUD ((F_CPU/(16UL*BAUD))-1)
 
-void uart_init(void)
+void serial_init(void)
 {
   // configure baudrate
   UBRR0H = UBRRH_VALUE;
@@ -25,7 +25,7 @@ void uart_init(void)
   UCSR0C = (1 << UCSZ01) | ( 1 << UCSZ00);
 }
 
-void print_char(const char c)
+void serial_print_char(const char c)
 {
   //wait until transmission buffer is ready
   while(!( UCSR0A & (1 << UDRE0)))
@@ -33,20 +33,20 @@ void print_char(const char c)
   UDR0 = c;
 }
 
-void print(const char* string)
+void serial_print(const char* string)
 {
   while(*string)
   {
-    print_char(*string);
+    serial_print_char(*string);
     ++string;
   }
 
 }
 
-void println(const char* string)
+void serial_println(const char* string)
 {
-  print(string);
-  print_char('\n');
+  serial_print(string);
+  serial_print_char('\n');
 }
 
 
