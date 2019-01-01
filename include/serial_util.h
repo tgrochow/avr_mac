@@ -3,14 +3,12 @@
 
 #define F_CPU 16000000
 #define BAUD 2400UL
+#define UBRR_BAUD ((F_CPU/(16UL*BAUD))-1)
 
 #include <avr/io.h>
 #include <util/setbaud.h>
 #include <inttypes.h>
 #include <stddef.h>
-
-
-#define UBRR_BAUD ((F_CPU/(16UL*BAUD))-1)
 
 void serial_init(void)
 {

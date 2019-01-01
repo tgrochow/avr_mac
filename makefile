@@ -9,7 +9,7 @@ OBJDIR=./build
 SRCDIR=./src
 SOURCES=$(notdir $(wildcard $(SRCDIR)/*.c))
 OBJECTS=$(addprefix $(OBJDIR)/, $(SOURCES:.c=.o))
-CFLAGS=-c -Os
+CFLAGS=-I./include -c -Os
 LDFLAGS=
 
 all: project_structure hex

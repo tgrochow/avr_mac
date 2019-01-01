@@ -1,4 +1,4 @@
-#include "../include/serial_util.h"
+#include "serial_util.h"
 #include <util/delay.h>
 #include <avr/io.h>
 #include <stdlib.h>
