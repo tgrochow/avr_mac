@@ -1,5 +1,6 @@
 TARGET=avr_template
 MCU=atmega2560
+FCPU=16000000
 PROGRAMMER=wiring
 PORT=/dev/ttyACM0
 PBAUD=115200
@@ -10,7 +11,7 @@ OBJDIR=./build
 SRCDIR=./src
 SOURCES=$(notdir $(wildcard $(SRCDIR)/*.c))
 OBJECTS=$(addprefix $(OBJDIR)/, $(SOURCES:.c=.o))
-CFLAGS=-I./include -c -Os
+CFLAGS=-I./include -c -Os -DF_CPU='$(FCPU)' -DBAUD='$(SBAUD)UL'
 LDFLAGS=
 
 all: project_structure hex
