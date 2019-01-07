@@ -8,6 +8,7 @@ int main(void)
   _delay_ms(1000);
   serial_init();
   _delay_ms(1000);
+  serial_println("serial init finished");
 
   DDRB |= (1 << PB7);
 

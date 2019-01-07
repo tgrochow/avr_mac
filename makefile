@@ -28,7 +28,7 @@ $(BINDIR)/$(TARGET).elf: $(OBJECTS)
 $(OBJDIR)/%.o : $(SRCDIR)/%.c
 	avr-gcc $(CFLAGS) -mmcu=$(MCU) $< -o $@
 
-program: hex
+program:
 	avrdude -p$(MCU) -P$(PORT) -B$(PBAUD) -c$(PROGRAMMER) \
 	-Uflash:w:$(BINDIR)/$(TARGET).hex:a
 
@@ -50,7 +50,7 @@ clean_bin:
 serial_monitor:
 	stty -F $(PORT) cs8 $(SBAUD) ignbrk -brkint -icrnl -imaxbel -opost -onlcr \
 	-isig -icanon -iexten -echo -echoe -echok -echoctl -echoke noflsh -ixon   \
-	-crtscts
+	-crtscts min 0
 	clear
 	tail -f $(PORT)
 
