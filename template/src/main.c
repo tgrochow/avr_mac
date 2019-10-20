@@ -1,7 +1,7 @@
-#include "serial_util.h"
 #include <util/delay.h>
 #include <avr/io.h>
 #include <stdlib.h>
+#include <uart.h>
 
 int main(void)
 {

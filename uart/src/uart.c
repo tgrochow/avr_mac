@@ -1,8 +1,8 @@
-#include "serial_util.h"
 #include <avr/io.h>
 #include <util/setbaud.h>
-#include <inttypes.h>
-#include <stddef.h>
+#include <stdlib.h>
+
+#include "uart.h"
 
 void serial_init(void)
 {
@@ -32,11 +32,31 @@ void serial_print(const char* string)
     serial_print_char(*string);
     ++string;
   }
-
 }
 
 void serial_println(const char* string)
 {
   serial_print(string);
+  serial_print_char('\n');
+}
+
+// print byte array in hexadecimal encoding
+void serial_print_byte_array(const uint8_t* array, size_t array_length)
+{
+  char str_hex[3];
+  size_t array_index;
+  serial_print_char('{');
+  for (array_index = 0; array_index < array_length; ++array_index)
+  {
+    itoa(array[array_index], str_hex, 16);
+    serial_print("0x");
+    serial_print(str_hex);
+
+    if (array_index + 1 < array_length)
+    {
+      serial_print(", ");
+    }
+  }
+  serial_print_char('}');
   serial_print_char('\n');
 }

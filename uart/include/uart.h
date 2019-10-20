@@ -1,5 +1,8 @@
-#ifndef SERIAL_UTIL_H
-#define SERIAL_UTIL_H
+#ifndef UART_H
+#define UART_H
+
+#include <inttypes.h>
+#include <stddef.h>
 
 #ifndef F_CPU
 #define F_CPU 16000000
@@ -13,5 +16,6 @@ void serial_init(void);
 void serial_print_char(const char c);
 void serial_print(const char* string);
 void serial_println(const char* string);
+void serial_print_byte_array(const uint8_t* array, size_t array_length);
 
 #endif
