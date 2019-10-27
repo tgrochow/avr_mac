@@ -1,6 +1,9 @@
-#include <util/delay.h>
+// system library
 #include <avr/io.h>
 #include <stdlib.h>
+#include <util/delay.h>
+
+// project library
 #include <uart.h>
 
 int main(void)

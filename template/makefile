@@ -45,7 +45,7 @@ size:
 clean: clean_tmp clean_bin
 
 clean_tmp:
-	rm -r $(OBJDIR)
+	rm -rf $(OBJDIR)
 
 clean_bin:
 	rm -rf $(BINDIR)

@@ -1,7 +1,5 @@
-TARGET=uart
+TARGET=crypto_util
 MCU=atmega2560
-FCPU=16000000
-SBAUD=9600
 
 LIBDIR=lib
 OBJDIR=build
@@ -9,7 +7,7 @@ SRCDIR=src
 INCDIR=include
 SOURCES=$(notdir $(wildcard $(SRCDIR)/*.c))
 OBJECTS=$(addprefix $(OBJDIR)/, $(SOURCES:.c=.o))
-CFLAGS=-I $(INCDIR) -c -Os -DF_CPU='$(FCPU)' -DBAUD='$(SBAUD)UL'
+CFLAGS=-I $(INCDIR) -c -Os
 LDFLAGS=
 
 all: project_structure lib

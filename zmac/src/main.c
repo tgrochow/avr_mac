@@ -1,0 +1,56 @@
+// system library
+#include <avr/io.h>
+#include <util/delay.h>
+#include <stdlib.h>
+#include <string.h>
+
+// project library
+#include <zmac.h>
+#include <stack_paint.h>
+#include <uart.h>
+
+// predefined constants
+#include <predefined_messages/message_128.h>
+
+/* calculated macs
+64:   {0xaf, 0x3d, 0xd, 0x46, 0xbe, 0xf6, 0xe4, 0xc6}
+128:  {0x21, 0x24, 0xbc, 0x54, 0x90, 0xd1, 0xb4, 0xf9}
+256:  {0x0d, 0xab, 0x1b, 0x9a, 0x0c, 0x45, 0x35, 0x31}
+512:  {0xce, 0xc7, 0x35, 0x4d, 0x27, 0x0d, 0xed, 0x67}
+1024: {0x13, 0xdc, 0x77, 0xf3, 0x3d, 0x99, 0x33, 0xbd}
+2048: {0x12, 0x9b, 0xa1, 0x54, 0x94, 0xde, 0x48, 0x78}
+4096: {0x98, 0xd3, 0xa3, 0x83, 0x6f, 0x43, 0x5c, 0x35} */
+
+int main(void)
+{
+  const uint8_t key_1[8] = {0xf5, 0x26, 0x98, 0x26, 0xfc, 0x68, 0x12, 0x38};
+  const uint8_t key_2[8] = {0x9e, 0xb9, 0xd6, 0x40, 0xd0, 0x88, 0xda, 0x63};
+  uint8_t mac[8];
+
+  _delay_ms(1000);
+  serial_init();
+  _delay_ms(1000);
+
+  memset(mac, 0, sizeof(mac));
+  zmac_calc_mac(mac, key_1, key_2, message, sizeof(message));
+  serial_print_byte_array(mac, sizeof(mac));
+
+  // extract the unused stack bytes
+  uint16_t stack_count_int = stack_count();
+  char stack_count_string[6];
+  utoa(stack_count_int, stack_count_string, 10);
+  serial_println(stack_count_string);
+
+  DDRB |= (1 << PB7);
+
+  while(1)
+  {
+    PORTB |= (1 << PB7);
+    _delay_ms(3000);
+
+    PORTB &= ~(1 << PB7);
+    _delay_ms(3000);
+  }
+
+  return 0;
+}

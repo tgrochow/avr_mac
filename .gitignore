@@ -1,8 +1,5 @@
 *
 !*/
-!template/include/*.h
-!template/src/*.c
-!template/makefile
-!uart/include/*.h
-!uart/src/*.c
-!uart/makefile
+!makefile
+!*.h
+!*.c
