@@ -183,25 +183,6 @@ static struct skinny64_128_tweaked_state skinny_state;
   "mov r22,r10\n" \
   "mov r23,r11\n"
 
-// Set rc to zero (stored in r25).
-#define INIT_ROUND_CONSTANT() \
-  "clr r25\n"
-
-// Generate the rc value for the next round.
-// rc = (rc << 1) ^ ((rc >> 5) & 0x01) ^ ((rc >> 4) & 0x01) ^ 0x01;
-// current round key is stored in r25
-#define CALC_NEXT_ROUND_CONSTANT() \
-  "clr r24\n"     \
-  "lsl r25\n"     \
-  "bst r25,6\n"   \
-  "bld r24,0\n"   \
-  "eor r25,r24\n" \
-  "bst r25,5\n"   \
-  "bld r24,0\n"   \
-  "eor r25,r24\n" \
-  "ldi r24,1\n"   \
-  "eor r25,r24\n" \
-
 // Transform the contents of a register using LFSR2.
 #define LFSR2(reg) \
   "mov r24, " reg "\n" \
@@ -238,27 +219,6 @@ static struct skinny64_128_tweaked_state skinny_state;
   "pop r18\n" \
   "pop r17\n" \
   "pop r16\n"
-
-#define STORE_TKN() \
-  "st Y+,r16\n" \
-  "st Y+,r17\n" \
-  "st Y+,r18\n" \
-  "st Y+,r19\n" \
-  "st Y+,r20\n" \
-  "st Y+,r21\n" \
-  "st Y+,r22\n" \
-  "st Y+,r23\n"
-
-#define LOAD_TKN() \
-  "ld r16,Y\n" \
-  "ldd r17,Y+1\n" \
-  "ldd r18,Y+2\n" \
-  "ldd r19,Y+3\n" \
-  "ldd r20,Y+4\n" \
-  "ldd r21,Y+5\n" \
-  "ldd r22,Y+6\n" \
-  "ldd r23,Y+7\n" \
-
 
 void skinny_encrypt_block(uint8_t *output, const uint8_t *input)
 {
@@ -470,57 +430,8 @@ void skinny_decrypt_block(uint8_t *output, const uint8_t *input)
 
 /**
  * \brief Clears the key schedule and sets it to the schedule for TK1.
- *
- * \param key Points to the 16 bytes of TK1.
- * \param tweaked Set to true if the subclass uses tweaks.
  */
 void skinny_set_tk1()
-{
-  __asm__ __volatile__
-  (
-    INIT_ROUND_CONSTANT()
-
-    // Top of the loop.
-    "1:\n"
-
-    CALC_NEXT_ROUND_CONSTANT()
-
-    // Store the first 8 cells of TK1 into the key schedule and XOR with rc.
-    "mov r24,r25\n"
-    "andi r24,0x0F\n"
-    "swap r24\n"
-    "st X+,r24\n"
-
-    "ldi r24,0x20\n"
-    "st X+,r24\n"
-
-    "mov r24,r25\n"
-    "andi r24,0x30\n"
-    "st X+,r24\n"
-
-    "clr r24\n"
-    "st X+,r24\n"
-
-    // Bottom of the loop.
-    "dec %1\n"
-    "breq 2f\n"
-    "rjmp 1b\n"
-    "2:\n"
-
-    : : "x"(skinny_state.schedule), "r"(SKINNY_ROUND_NUMBER)
-    : "r24", "r25", "memory"
-  );
-}
-
-/**
- * \brief XOR's the key schedule with the schedule for TK1.
- *
- * \param key Points to the 16 bytes of TK1.
- *
- * This function is used to adjust the tweak for the tweakable versions
- * of the SKINNY block cipher.
- */
-void skinny_xor_tk1(const uint8_t *key, uint8_t *tk1)
 {
   __asm__ __volatile__
   (
@@ -530,18 +441,41 @@ void skinny_xor_tk1(const uint8_t *key, uint8_t *tk1)
     // Top of the loop.
     "1:\n"
 
-    // XOR the first two rows of TK1 with the key schedule.
-    "ld __tmp_reg__,X\n"
-    "eor __tmp_reg__,r16\n"
-    "st X+,__tmp_reg__\n"
-    "ld __tmp_reg__,X\n"
-    "eor __tmp_reg__,r17\n"
-    "st X+,__tmp_reg__\n"
-    "ld __tmp_reg__,X\n"
-    "eor __tmp_reg__,r18\n"
-    "st X+,__tmp_reg__\n"
+    // Generate the rc value for the next round.
+    // rc = (rc << 1) ^ ((rc >> 5) & 0x01) ^ ((rc >> 4) & 0x01) ^ 0x01;
+    // the current round constant is storred in skinny_state.round_constant
+    "ld r25,Y\n"
+    "clr r24\n"
+    "lsl r25\n"
+    "bst r25,6\n"
+    "bld r24,0\n"
+    "eor r25,r24\n"
+    "bst r25,5\n"
+    "bld r24,0\n"
+    "eor r25,r24\n"
+    "ldi r24,1\n"
+    "eor r25,r24\n"
+    "st Y,r25\n"
 
-    // Permute TK1 for the next round.
+    // Store the first 8 cells of TK1 into the key schedule and XOR with rc.
+    "mov r24,r25\n"
+    "andi r24,0x0F\n"
+    "swap r24\n"
+    "eor r24,r16\n"
+    "st X+,r24\n"
+
+    "ldi r24,0x20\n"
+    "eor r24,r17\n"
+    "st X+,r24\n"
+
+    "mov r24,r25\n"
+    "andi r24,0x30\n"
+    "eor r24,r18\n"
+    "st X+,r24\n"
+
+    "st X+,r19\n"
+
+    // Permute TK2 for the next round.
     PERMUTE_TKN()
 
     // Bottom of the loop.
@@ -550,7 +484,8 @@ void skinny_xor_tk1(const uint8_t *key, uint8_t *tk1)
     "rjmp 1b\n"
     "2:\n"
 
-    : : "x"(skinny_state.schedule), "y"(tk1), "z"(key), "r"(SKINNY_ROUND_NUMBER)
+    : : "x"(skinny_state.schedule), "y"(&skinny_state.round_constant),
+        "z"(skinny_state.tweak), "r"(SKINNY_ROUND_NUMBER)
     :  "r8",  "r9", "r10", "r11", "r16", "r17", "r18", "r19",
       "r20", "r21", "r22", "r23", "r24", "memory"
   );
@@ -558,10 +493,8 @@ void skinny_xor_tk1(const uint8_t *key, uint8_t *tk1)
 
 /**
  * \brief XOR's the key schedule with the schedule for TK2.
- *
- * \param key Points to the 16 bytes of TK2.
  */
-void skinny_set_tk2(const uint8_t *key, uint8_t *tk2)
+void skinny_set_tk2()
 {
   __asm__ __volatile__
   (
@@ -594,15 +527,14 @@ void skinny_set_tk2(const uint8_t *key, uint8_t *tk2)
     LFSR2("r18")
     LFSR2("r19")
 
-    STORE_TKN()
-
     // Bottom of the loop.
-    "dec %3\n"
+    "dec %2\n"
     "breq 2f\n"
     "rjmp 1b\n"
     "2:\n"
 
-    : : "x"(skinny_state.schedule), "y"(tk2), "z"(key), "r"(SKINNY_ROUND_NUMBER)
+    : : "x"(skinny_state.schedule), "z"(skinny_state.key),
+        "r"(SKINNY_ROUND_NUMBER)
     :  "r8",  "r9", "r10", "r11", "r16", "r17", "r18", "r19",
       "r20", "r21", "r22", "r23", "r24", "memory"
   );
@@ -629,9 +561,7 @@ void skinny_set_key(const uint8_t *key)
 void skinny_set_tweak(const uint8_t *tweak)
 {
   skinny_state.tweak = tweak;
-  SAVE_ENCRYPTION_STATE();
+  skinny_state.round_constant = 0;
   skinny_set_tk1();
-  skinny_xor_tk1(skinny_state.tweak, (uint8_t *) &skinny_state.tk1);
-  skinny_set_tk2(skinny_state.key, (uint8_t *) &skinny_state.tk2);
-  RESTORE_ENCRYPTION_STATE();
+  skinny_set_tk2();
 }

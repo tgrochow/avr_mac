@@ -31,9 +31,7 @@
 struct skinny64_128_tweaked_state
 {
   uint32_t schedule[SKINNY_ROUND_NUMBER];
-  uint32_t tk1;
-  uint32_t tk2;
-  uint8_t rc;
+  uint8_t round_constant;
   const uint8_t *key;
   const uint8_t *tweak;
 };
@@ -42,9 +40,7 @@ void skinny_encrypt_block(uint8_t *output, const uint8_t *input);
 void skinny_decrypt_block(uint8_t *output, const uint8_t *input);
 void skinny_set_key(const uint8_t *key);
 void skinny_set_tweak(const uint8_t *tweak);
-void skinny_reset_tweak();
 void skinny_set_tk1();
-void skinny_xor_tk1(const uint8_t *key, uint8_t *tk1);
-void skinny_set_tk2(const uint8_t *key, uint8_t *tk2);
+void skinny_set_tk2();
 
 #endif
