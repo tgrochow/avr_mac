@@ -438,13 +438,14 @@ void skinny_set_tk1()
     // Load the TK1 bytes into r16..r23.
     LOAD_BLOCK()
 
+    // Set rc to zero (stored in r25).
+    "clr r25\n"
+
     // Top of the loop.
     "1:\n"
 
     // Generate the rc value for the next round.
     // rc = (rc << 1) ^ ((rc >> 5) & 0x01) ^ ((rc >> 4) & 0x01) ^ 0x01;
-    // the current round constant is storred in skinny_state.round_constant
-    "ld r25,Y\n"
     "clr r24\n"
     "lsl r25\n"
     "bst r25,6\n"
@@ -455,7 +456,6 @@ void skinny_set_tk1()
     "eor r25,r24\n"
     "ldi r24,1\n"
     "eor r25,r24\n"
-    "st Y,r25\n"
 
     // Store the first 8 cells of TK1 into the key schedule and XOR with rc.
     "mov r24,r25\n"
@@ -479,15 +479,15 @@ void skinny_set_tk1()
     PERMUTE_TKN()
 
     // Bottom of the loop.
-    "dec %3\n"
+    "dec %2\n"
     "breq 2f\n"
     "rjmp 1b\n"
     "2:\n"
 
-    : : "x"(skinny_state.schedule), "y"(&skinny_state.round_constant),
-        "z"(skinny_state.tweak), "r"(SKINNY_ROUND_NUMBER)
-    :  "r8",  "r9", "r10", "r11", "r16", "r17", "r18", "r19",
-      "r20", "r21", "r22", "r23", "r24", "memory"
+    : : "x"(skinny_state.schedule), "z"(skinny_state.tweak),
+        "r"(SKINNY_ROUND_NUMBER)
+    :   "r8",  "r9", "r10", "r11", "r16", "r17", "r18", "r19", "r20", "r21",
+        "r22", "r23", "r24", "memory"
   );
 }
 
@@ -561,7 +561,6 @@ void skinny_set_key(const uint8_t *key)
 void skinny_set_tweak(const uint8_t *tweak)
 {
   skinny_state.tweak = tweak;
-  skinny_state.round_constant = 0;
   skinny_set_tk1();
   skinny_set_tk2();
 }

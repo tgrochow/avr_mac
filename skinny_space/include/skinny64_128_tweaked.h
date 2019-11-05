@@ -31,7 +31,6 @@
 struct skinny64_128_tweaked_state
 {
   uint32_t schedule[SKINNY_ROUND_NUMBER];
-  uint8_t round_constant;
   const uint8_t *key;
   const uint8_t *tweak;
 };
