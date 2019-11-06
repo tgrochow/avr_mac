@@ -487,7 +487,7 @@ void skinny_set_tk1()
     : : "x"(skinny_state.schedule), "z"(skinny_state.tweak),
         "r"(SKINNY_ROUND_NUMBER)
     :   "r8",  "r9", "r10", "r11", "r16", "r17", "r18", "r19", "r20", "r21",
-        "r22", "r23", "r24", "memory"
+        "r22", "r23", "r24", "r25", "memory"
   );
 }
 
