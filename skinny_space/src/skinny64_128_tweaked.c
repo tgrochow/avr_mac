@@ -206,9 +206,21 @@ static struct skinny64_128_tweaked_state skinny_state;
   "push r22\n" \
   "push r23\n" \
   "push r24\n" \
-  "push r25\n"
+  "push r25\n" \
+  "push r26\n" \
+  "push r27\n" \
+  "push r28\n" \
+  "push r29\n" \
+  "push r30\n" \
+  "push r31\n"
 
 #define RESTORE_ENCRYPTION_STATE() \
+  "pop r31\n" \
+  "pop r30\n" \
+  "pop r29\n" \
+  "pop r28\n" \
+  "pop r27\n" \
+  "pop r26\n" \
   "pop r25\n" \
   "pop r24\n" \
   "pop r23\n" \
@@ -230,6 +242,11 @@ void skinny_encrypt_block(uint8_t *output, const uint8_t *input)
 
   __asm__ __volatile__
   (
+    SAVE_ENCRYPTION_STATE()
+    "call skinny_set_tk1\n"
+    "call skinny_set_tk2\n"
+    RESTORE_ENCRYPTION_STATE()
+
     // Load the input block from Z[0..15] into r16..r23.
     LOAD_BLOCK()
 
@@ -334,6 +351,11 @@ void skinny_decrypt_block(uint8_t *output, const uint8_t *input)
 
   __asm__ __volatile__
   (
+    SAVE_ENCRYPTION_STATE()
+    "call skinny_set_tk1\n"
+    "call skinny_set_tk2\n"
+    RESTORE_ENCRYPTION_STATE()
+
     // Load the input block from Z[0..15] into r16..r23.
     LOAD_BLOCK()
 
@@ -561,6 +583,4 @@ void skinny_set_key(const uint8_t *key)
 void skinny_set_tweak(const uint8_t *tweak)
 {
   skinny_state.tweak = tweak;
-  skinny_set_tk1();
-  skinny_set_tk2();
 }
