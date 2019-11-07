@@ -34,6 +34,7 @@ int main(void)
   skinny_set_key(tv.key);
   skinny_set_tweak(tv.tweak);
   skinny_encrypt_block(buffer, tv.plaintext);
+  serial_print_byte_array(buffer, 8);
 
   if (memcmp(buffer, tv.ciphertext, sizeof(buffer)) == 0)
   {
