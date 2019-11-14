@@ -40,12 +40,21 @@ void serial_println(const char* string)
   serial_print_char('\n');
 }
 
+void serial_print_hex(uint32_t hex)
+{
+  char str_hex[9];
+  itoa(hex, str_hex, 16);
+  serial_print("0x");
+  serial_print(str_hex);
+  serial_print_char('\n');
+}
+
 // print byte array in hexadecimal encoding
 void serial_print_byte_array(const uint8_t* array, size_t array_length)
 {
   char str_hex[3];
   size_t array_index;
-  serial_print_char('{');
+  serial_print_char('[');
   for (array_index = 0; array_index < array_length; ++array_index)
   {
     itoa(array[array_index], str_hex, 16);
@@ -57,6 +66,6 @@ void serial_print_byte_array(const uint8_t* array, size_t array_length)
       serial_print(", ");
     }
   }
-  serial_print_char('}');
+  serial_print_char(']');
   serial_print_char('\n');
 }

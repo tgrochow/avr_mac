@@ -20,10 +20,12 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-// systrem library
+// system library
 #include <avr/pgmspace.h>
 #include <string.h>
 
+// project library
+#include <uart.h>
 
 #include <skinny64_128_tweaked.h>
 
@@ -242,11 +244,6 @@ void skinny_encrypt_block(uint8_t *output, const uint8_t *input)
 
   __asm__ __volatile__
   (
-    SAVE_ENCRYPTION_STATE()
-    "call skinny_set_tk1\n"
-    "call skinny_set_tk2\n"
-    RESTORE_ENCRYPTION_STATE()
-
     // Load the input block from Z[0..15] into r16..r23.
     LOAD_BLOCK()
 
@@ -273,6 +270,10 @@ void skinny_encrypt_block(uint8_t *output, const uint8_t *input)
     SBOX("r22")
     SBOX("r23")
 
+    SAVE_ENCRYPTION_STATE()
+    "call skinny_generate_key\n"
+    RESTORE_ENCRYPTION_STATE()
+
     // XOR the state with the key schedule.
     "ld __tmp_reg__,X+\n"
     "eor r16,__tmp_reg__\n"
@@ -280,10 +281,15 @@ void skinny_encrypt_block(uint8_t *output, const uint8_t *input)
     "eor r17,__tmp_reg__\n"
     "ld __tmp_reg__,X+\n"
     "eor r18,__tmp_reg__\n"
-    "ld __tmp_reg__,X+\n"
+    "ld __tmp_reg__,X\n"
     "eor r19,__tmp_reg__\n"
     "ldi r24,0x20\n"
     "eor r20,r24\n"
+    // decrement x stack pointer to the start of the round key address
+    // TODO: find a more efficient way
+    "ld __tmp_reg__,-X\n"
+    "ld __tmp_reg__,-X\n"
+    "ld __tmp_reg__,-X\n"
 
     // Shift the rows.
     "swap r18\n"                // r18:r19 = shift_right_4(r18:r19)
@@ -331,7 +337,7 @@ void skinny_encrypt_block(uint8_t *output, const uint8_t *input)
     "ldd r31,%B2\n"
     STORE_BLOCK()
 
-    : : "x"(skinny_state.schedule), "z"(input), "Q"(output), "Q"(sbox_addr),
+    : : "x"(skinny_state.round_key), "z"(input), "Q"(output), "Q"(sbox_addr),
         "r"((uint8_t)SKINNY_ROUND_NUMBER)
     #if defined(RAMPZ)
       , "I" (_SFR_IO_ADDR(RAMPZ))
@@ -452,9 +458,6 @@ void skinny_set_tk1()
 {
   __asm__ __volatile__
   (
-    // Top of the loop.
-    "1:\n"
-
     // Load the TK1 bytes into r16..r23.
     LOAD_BLOCK()
 
@@ -496,14 +499,8 @@ void skinny_set_tk1()
 
     STORE_BLOCK()
 
-    // Bottom of the loop.
-    "dec %3\n"
-    "breq 2f\n"
-    "rjmp 1b\n"
-    "2:\n"
-
-    : : "x"(skinny_state.schedule), "y"(&skinny_state.rc),
-        "z"(skinny_state.tk1), "r"(SKINNY_ROUND_NUMBER)
+    : : "x"(skinny_state.round_key), "y"(&skinny_state.rc),
+        "z"(skinny_state.tk1)
     :   "r8",  "r9", "r10", "r11", "r16", "r17", "r18", "r19", "r20", "r21",
         "r22", "r23", "r24", "r25", "memory"
   );
@@ -516,9 +513,6 @@ void skinny_set_tk2()
 {
   __asm__ __volatile__
   (
-    // Top of the loop.
-    "1:\n"
-
     // Load the TK2 bytes into r16..r23.
     LOAD_BLOCK()
 
@@ -547,17 +541,16 @@ void skinny_set_tk2()
 
     STORE_BLOCK()
 
-    // Bottom of the loop.
-    "dec %2\n"
-    "breq 2f\n"
-    "rjmp 1b\n"
-    "2:\n"
-
-    : : "x"(skinny_state.schedule), "z"(skinny_state.tk2),
-        "r"(SKINNY_ROUND_NUMBER)
+    : : "x"(skinny_state.round_key), "z"(skinny_state.tk2)
     :  "r8",  "r9", "r10", "r11", "r16", "r17", "r18", "r19",
       "r20", "r21", "r22", "r23", "r24", "memory"
   );
+}
+
+void skinny_generate_key()
+{
+  skinny_set_tk1();
+  skinny_set_tk2();
 }
 
 
