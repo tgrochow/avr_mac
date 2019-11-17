@@ -3,6 +3,9 @@
 
 #include <inttypes.h>
 
+void permute_tkn(uint8_t *tkn);
+void inv_permute_tkn(uint8_t *tkn);
+
 void xor_64_compound(uint8_t *x1, const uint8_t *x2);
 void xor_64(uint8_t *x, const uint8_t *x1, const uint8_t *x2);
 void mult2_64(uint8_t *a);
