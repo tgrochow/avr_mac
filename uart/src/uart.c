@@ -40,7 +40,16 @@ void serial_println(const char* string)
   serial_print_char('\n');
 }
 
-void serial_print_hex(uint32_t hex)
+void serial_print_uint8(uint8_t hex)
+{
+  char str_hex[3];
+  itoa(hex, str_hex, 16);
+  serial_print("0x");
+  serial_print(str_hex);
+  serial_print_char('\n');
+}
+
+void serial_print_uint32(uint32_t hex)
 {
   char str_hex[9];
   itoa(hex, str_hex, 16);

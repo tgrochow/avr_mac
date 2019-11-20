@@ -116,6 +116,51 @@ void inv_permute_tkn(uint8_t *tkn)
   );
 }
 
+void calc_next_rc(uint8_t *rc)
+{
+  __asm__ __volatile__
+  (
+     // Generate the rc value for the next round.
+    // rc = (rc << 1) ^ ((rc >> 5) & 0x01) ^ ((rc >> 4) & 0x01) ^ 0x01;
+    "ld r25,Y\n"
+    "clr r24\n"
+    "lsl r25\n"
+    "bst r25,6\n"
+    "bld r24,0\n"
+    "eor r25,r24\n"
+    "bst r25,5\n"
+    "bld r24,0\n"
+    "eor r25,r24\n"
+    "ldi r24,1\n"
+    "eor r25,r24\n"
+    "st Y,r25\n"
+
+    : : "y"(rc)
+    :   "r24",  "r25", "memory"
+  );
+}
+
+void calc_prev_rc(uint8_t *rc)
+{
+  __asm__ __volatile__
+  (
+    "ld r25,Y\n"
+    "clr r24\n"
+    "bst r25,5\n"
+    "bld r24,0\n"
+    "eor r25,r24\n"
+    "ldi r24,1\n"
+    "eor r25,r24\n"
+    "bst r25,0\n"
+    "lsr r25\n"
+    "bld r25,5\n"
+    "st Y,r25\n"
+
+    : : "y"(rc)
+    :   "r24",  "r25", "memory"
+  );
+}
+
 void xor_64_compound(uint8_t *x1, const uint8_t *x2)
 {
   *((uint64_t*) x1) ^= *((const uint64_t*) x2);
