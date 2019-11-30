@@ -1,10 +1,10 @@
 // system library
-#include <crypto_util.h>
-#include <skinny64_128_tweaked.h>
 #include <string.h>
 
-
+// project library
 #include <dovemac_pp.h>
+#include <mac_util.h>
+#include <skinny64_128_tweaked.h>
 
 void dmac_calc_theta(uint8_t *theta, const uint8_t *message,
     size_t message_size)

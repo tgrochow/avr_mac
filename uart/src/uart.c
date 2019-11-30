@@ -34,10 +34,15 @@ void serial_print(const char* string)
   }
 }
 
+void serial_print_line_break()
+{
+  serial_print_char('\n');
+}
+
 void serial_println(const char* string)
 {
   serial_print(string);
-  serial_print_char('\n');
+  serial_print_line_break();
 }
 
 void serial_print_uint8(uint8_t hex)
@@ -46,7 +51,7 @@ void serial_print_uint8(uint8_t hex)
   itoa(hex, str_hex, 16);
   serial_print("0x");
   serial_print(str_hex);
-  serial_print_char('\n');
+  serial_print_line_break();
 }
 
 void serial_print_uint32(uint32_t hex)
@@ -55,7 +60,7 @@ void serial_print_uint32(uint32_t hex)
   itoa(hex, str_hex, 16);
   serial_print("0x");
   serial_print(str_hex);
-  serial_print_char('\n');
+  serial_print_line_break();
 }
 
 // print byte array in hexadecimal encoding
@@ -76,5 +81,18 @@ void serial_print_byte_array(const uint8_t* array, size_t array_length)
     }
   }
   serial_print_char(']');
-  serial_print_char('\n');
+  serial_print_line_break();
+}
+
+void serial_print_test_result(const char* test_description, uint8_t success)
+{
+  serial_print(test_description);
+  if (success)
+  {
+    serial_println(" ✓");
+  }
+  else
+  {
+    serial_println(" ✗");
+  }
 }

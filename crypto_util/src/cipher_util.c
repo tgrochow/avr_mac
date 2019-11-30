@@ -1,4 +1,4 @@
-#include <crypto_util.h>
+#include <cipher_util.h>
 
 // Load a 64-bit input block into r16..r23.  Note that the even cells
 // are in the high nibbles of each byte rather than the low nibble.
@@ -82,6 +82,20 @@
   "mov r18,r10\n"   \
   "mov r19,r11\n"
 
+  // Transform the contents of a register using LFSR2.
+#define LFSR2(reg) \
+  "mov r24, " reg "\n" \
+  "lsl " reg "\n"      \
+  "bst r24,7\n"        \
+  "bld " reg ",4\n"    \
+  "bst r24,3\n"        \
+  "bld " reg ",0\n"    \
+  "lsr r24\n"          \
+  "lsr r24\n"          \
+  "andi r24,0x11\n"    \
+  "eor " reg ",r24\n"
+
+
 void permute_tkn(uint8_t *tkn)
 {
   __asm__ __volatile__
@@ -126,6 +140,7 @@ void calc_next_rc(uint8_t *rc)
     "clr r24\n"
     "lsl r25\n"
     "bst r25,6\n"
+    "andi r25,0xbf\n"
     "bld r24,0\n"
     "eor r25,r24\n"
     "bst r25,5\n"
@@ -159,62 +174,4 @@ void calc_prev_rc(uint8_t *rc)
     : : "y"(rc)
     :   "r24",  "r25", "memory"
   );
-}
-
-void xor_64_compound(uint8_t *x1, const uint8_t *x2)
-{
-  *((uint64_t*) x1) ^= *((const uint64_t*) x2);
-}
-
-void xor_64(uint8_t *x, const uint8_t *x1, const uint8_t *x2)
-{
-  *((uint64_t*) x) = *((const uint64_t*) x1) ^ *((const uint64_t*) x2);
-}
-
-void mult2_64(uint8_t *a)
-{
-  // calculate the most significant bit (msb)
-  int8_t msb = a[7] >> 7;
-
-  // shift 1 bit to the right to perform multiplication by two
-  *((uint64_t*) a) <<= 1;
-
-  // if msb was 1 xor value with 0x1b
-  a[0] ^= select(0x00, 0x1b, msb);
-}
-
-// return a or b dependent on bit
-// if bit equals 0 return a else if bit equals 1 return b
-// for this function to work as expected bit must be exactly 0x00 or 0x01
-uint8_t select(uint8_t a, uint8_t b, int8_t bit)
-{
-  uint8_t mask = -bit;
-  uint8_t result = mask & (a ^ b);
-
-  return result ^ a;
-}
-
-// Creates a padded message block with the last bytes of the message
-void append_bit_padding(uint8_t *padded_message_block,
-    uint16_t complete_block_byte_number, uint8_t message_block_remainder,
-    uint8_t message_block_size, const uint8_t *message)
-{
-  // address of the first byte of the padded message block
-  const uint8_t *first_byte_address = message + complete_block_byte_number;
-
-  // byte index of padded message block
-  uint8_t byte_index;
-
-  // copy the bytes of the incomplete message block
-  for(byte_index = 0; byte_index < message_block_remainder; ++byte_index)
-  {
-    padded_message_block[byte_index] = *(first_byte_address + byte_index);
-  }
-
-  // append bit padding
-  padded_message_block[byte_index] = 0x80;
-  for(byte_index += 1; byte_index < message_block_size; ++byte_index)
-  {
-    padded_message_block[byte_index] = 0;
-  }
 }

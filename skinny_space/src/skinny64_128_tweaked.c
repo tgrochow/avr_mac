@@ -142,7 +142,7 @@ static struct skinny64_128_tweaked_state skinny_state;
   "ldd r20,Z+4\n" \
   "ldd r21,Z+5\n" \
   "ldd r22,Z+6\n" \
-  "ldd r23,Z+7\n" \
+  "ldd r23,Z+7\n"
 
 // Store r16..r23 to a 64-bit output block.
 #define STORE_BLOCK() \

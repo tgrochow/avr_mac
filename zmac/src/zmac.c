@@ -2,7 +2,7 @@
 #include <string.h>
 
 // project library
-#include <crypto_util.h>
+#include <mac_util.h>
 #include <skinny64_128_tweaked.h>
 
 

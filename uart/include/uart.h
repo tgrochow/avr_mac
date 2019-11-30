@@ -16,8 +16,10 @@ void serial_init(void);
 void serial_print_char(const char c);
 void serial_print(const char* string);
 void serial_println(const char* string);
+void serial_print_line_break();
 void serial_print_uint8(uint8_t hex);
 void serial_print_uint32(uint32_t hex);
 void serial_print_byte_array(const uint8_t* array, size_t array_length);
+void serial_print_test_result(const char* test_description, uint8_t success);
 
 #endif

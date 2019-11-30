@@ -1,10 +1,10 @@
 // system library
-#include <crypto_util.h>
 #include <string.h>
-#include <skinny64_128_tweaked.h>
 
-
+// project library
 #include <dovemac.h>
+#include <mac_util.h>
+#include <skinny64_128_tweaked.h>
 
 void dmac_calc_mac(uint8_t *tag, const uint8_t *key_1, const uint8_t *key_2,
     const uint8_t *message, size_t message_size)
