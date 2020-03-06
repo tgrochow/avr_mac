@@ -95,6 +95,48 @@
   "andi r24,0x11\n"    \
   "eor " reg ",r24\n"
 
+  // Transform the contents of a register using inverse LFSR2.
+#define INV_LFSR2(reg) \
+  "mov r24, " reg "\n" \
+  "bst r24,3\n"        \
+  "bld r24,0\n"        \
+  "bst r24,7\n"        \
+  "bld r24,4\n"        \
+  "andi r24,0x11\n"    \
+  "eor " reg ",r24\n"  \
+  "bst " reg ",0\n"    \
+  "bld r24,3\n"        \
+  "lsr " reg "\n"      \
+  "bst " reg ",3\n"    \
+  "bld " reg ",7\n"    \
+  "bst r24,3\n"        \
+  "bld " reg ",3\n"
+
+void lfsr2(uint8_t *t)
+{
+  __asm__ __volatile__
+  (
+    "ld r25, z\n"
+    LFSR2("r25")
+    "st z,r25\n"
+
+    : : "z"(t)
+    : "r24", "r25", "memory"
+  );
+}
+
+void inv_lfsr2(uint8_t *t)
+{
+  __asm__ __volatile__
+  (
+    "ld r25, z\n"
+    INV_LFSR2("r25")
+    "st z,r25\n"
+
+    : : "z"(t)
+    : "r24", "r25", "memory"
+  );
+}
 
 void permute_tkn(uint8_t *tkn)
 {
@@ -173,5 +215,104 @@ void calc_prev_rc(uint8_t *rc)
 
     : : "y"(rc)
     :   "r24",  "r25", "memory"
+  );
+}
+
+void skinny_generate_next_key(uint8_t *round_key, uint8_t *round_constant,
+    uint8_t *tk1, uint8_t *tk2)
+{
+  skinny_set_tk1(round_key, round_constant, tk1, tk2);
+  skinny_set_tk2(round_key, tk2);
+}
+
+void skinny_set_tk1(uint8_t *round_key, uint8_t *round_constant, uint8_t *tk1,
+    uint8_t *tk2)
+{
+  __asm__ __volatile__
+  (
+    // Load the TK1 bytes into r16..r23.
+    LOAD_BLOCK()
+
+    // Generate the rc value for the next round.
+    // rc = (rc << 1) ^ ((rc >> 5) & 0x01) ^ ((rc >> 4) & 0x01) ^ 0x01;
+    "ld r25,Y\n"
+    "clr r24\n"
+    "lsl r25\n"
+    "bst r25,6\n"
+    "bld r24,0\n"
+    "eor r25,r24\n"
+    "bst r25,5\n"
+    "bld r24,0\n"
+    "eor r25,r24\n"
+    "ldi r24,1\n"
+    "eor r25,r24\n"
+    "st Y,r25\n"
+
+    // Store the first 8 cells of TK1 into the key schedule and XOR with rc.
+    "mov r24,r25\n"
+    "andi r24,0x0F\n"
+    "swap r24\n"
+    "eor r24,r16\n"
+    "st X+,r24\n"
+
+    "ldi r24,0x20\n"
+    "eor r24,r17\n"
+    "st X+,r24\n"
+
+    "mov r24,r25\n"
+    "andi r24,0x30\n"
+    "eor r24,r18\n"
+    "st X+,r24\n"
+
+    "st X+,r19\n"
+
+    // Permute TK1 for the next round.
+    PERMUTE_TKN()
+
+    STORE_BLOCK()
+
+    //"ldi ZL, lo8(test)\n"
+
+    : : "x"(round_key), "y"(round_constant), "z"(tk1)
+    :   "r8",  "r9", "r10", "r11", "r16", "r17", "r18", "r19", "r20", "r21",
+        "r22", "r23", "r24", "r25", "memory"
+  );
+}
+
+void skinny_set_tk2(uint8_t *round_key, uint8_t *tk2)
+{
+  __asm__ __volatile__
+  (
+    // Load the TK2 bytes into r16..r23.
+    LOAD_BLOCK()
+
+    // XOR the first two rows of TK2 with the key schedule.
+    "ld __tmp_reg__,X\n"
+    "eor __tmp_reg__,r16\n"
+    "st X+,__tmp_reg__\n"
+    "ld __tmp_reg__,X\n"
+    "eor __tmp_reg__,r17\n"
+    "st X+,__tmp_reg__\n"
+    "ld __tmp_reg__,X\n"
+    "eor __tmp_reg__,r18\n"
+    "st X+,__tmp_reg__\n"
+    "ld __tmp_reg__,X\n"
+    "eor __tmp_reg__,r19\n"
+    "st X+,__tmp_reg__\n"
+
+    // Permute TK2 for the next round.
+    PERMUTE_TKN()
+
+    // Apply LFSR2 to the first two rows of TK2.
+    LFSR2("r16")
+    LFSR2("r17")
+    LFSR2("r18")
+    LFSR2("r19")
+
+    STORE_BLOCK()
+
+    : : "x"(round_key), "z"(tk2)
+    :   "r8",  "r9", "r10", "r11", "r16", "r17", "r18", "r19", "r20", "r21",
+        "r22", "r23", "r24", "memory"
   );
 }

@@ -8,7 +8,22 @@
 #include <uart.h>
 
 #define TKN_SIZE 8
+#define ROUND_KEY_SIZE 4
 #define ROUND_NUMBER 36
+
+void test_round_key_generation()
+{
+  uint8_t round_key[ROUND_KEY_SIZE];
+  uint8_t next_round_key[ROUND_KEY_SIZE] = {0xf8, 0x3a, 0xab, 0x5c};
+  uint8_t round_constant = 0;
+  uint8_t tk1[TKN_SIZE] = {0x76, 0xa3, 0x9d, 0x1c, 0x8b, 0xea, 0x71, 0xe1};
+  uint8_t tk2[TKN_SIZE] = {0x9e, 0xb9, 0x36, 0x40, 0xd0, 0x88, 0xda, 0x63};
+
+  skinny_generate_next_key(round_key, &round_constant, tk1, tk2);
+  uint8_t round_key_gen_correct = memcmp(round_key, next_round_key,
+      ROUND_KEY_SIZE) == 0;
+  serial_print_test_result("generate next round key", round_key_gen_correct);
+}
 
 void test_tkn_permutation()
 {
@@ -31,8 +46,7 @@ void test_tkn_permutation()
     }
   }
 
-  const char * test_message = "tkn permutation";
-  serial_print_test_result(test_message, tkn_permutation_correct);
+  serial_print_test_result("apply tkn permutation", tkn_permutation_correct);
 }
 
 void test_round_constant_calculation()
@@ -58,8 +72,7 @@ void test_round_constant_calculation()
     }
   }
 
-  const char * test_message_1 = "calculate next round constant";
-  serial_print_test_result(test_message_1, rc_correct);
+  serial_print_test_result("calculate next round constant", rc_correct);
 
   rc_correct = 1;
   for (rc_index = ROUND_NUMBER - 1; rc_index > 0; rc_index = rc_index - 1)
@@ -75,8 +88,19 @@ void test_round_constant_calculation()
     }
   }
 
-  const char * test_message_2 = "calculate previous round constant";
-  serial_print_test_result(test_message_2, rc_correct);
+  serial_print_test_result("calculate previous round constant", rc_correct);
+}
+
+void test_lfsr2()
+{
+  uint8_t t = 0x8f;
+  uint8_t t_copy = t;
+
+  lfsr2(&t);
+  inv_lfsr2(&t);
+
+  uint8_t lfsr_correct = t == t_copy;
+  serial_print_test_result("apply linear feedback shift register", lfsr_correct);
 }
 
 int main(void)
@@ -89,8 +113,10 @@ int main(void)
   serial_print_line_break();
   serial_println("test results:");
   serial_print_line_break();
+  test_round_key_generation();
   test_tkn_permutation();
   test_round_constant_calculation();
+  test_lfsr2();
   serial_print_line_break();
 
   // blink
