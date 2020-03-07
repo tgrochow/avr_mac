@@ -2,26 +2,26 @@
 
 // Load a 64-bit input block into r16..r23.  Note that the even cells
 // are in the high nibbles of each byte rather than the low nibble.
-#define LOAD_BLOCK() \
-  "ld r16,Z\n" \
-  "ldd r17,Z+1\n" \
-  "ldd r18,Z+2\n" \
-  "ldd r19,Z+3\n" \
-  "ldd r20,Z+4\n" \
-  "ldd r21,Z+5\n" \
-  "ldd r22,Z+6\n" \
-  "ldd r23,Z+7\n"
+#define LOAD_BLOCK(pointer_reg) \
+  "ld r16, " pointer_reg "\n" \
+  "ldd r17," pointer_reg "+1\n" \
+  "ldd r18," pointer_reg "+2\n" \
+  "ldd r19," pointer_reg "+3\n" \
+  "ldd r20," pointer_reg "+4\n" \
+  "ldd r21," pointer_reg "+5\n" \
+  "ldd r22," pointer_reg "+6\n" \
+  "ldd r23," pointer_reg "+7\n"
 
 // Store r16..r23 to a 64-bit output block.
-#define STORE_BLOCK() \
-  "st Z,r16\n" \
-  "std Z+1,r17\n" \
-  "std Z+2,r18\n" \
-  "std Z+3,r19\n" \
-  "std Z+4,r20\n" \
-  "std Z+5,r21\n" \
-  "std Z+6,r22\n" \
-  "std Z+7,r23\n"
+#define STORE_BLOCK(pointer_reg) \
+  "st " pointer_reg ",r16\n" \
+  "std " pointer_reg "+1,r17\n" \
+  "std " pointer_reg "+2,r18\n" \
+  "std " pointer_reg "+3,r19\n" \
+  "std " pointer_reg "+4,r20\n" \
+  "std " pointer_reg "+5,r21\n" \
+  "std " pointer_reg "+6,r22\n" \
+  "std " pointer_reg "+7,r23\n"
 
 // Permutes the cells within a TKn value while expanding the key schedule.
 // PT = [9, 15, 8, 13, 10, 14, 12, 11, 0, 1, 2, 3, 4, 5, 6, 7]
@@ -143,11 +143,11 @@ void permute_tkn(uint8_t *tkn)
   __asm__ __volatile__
   (
     // load the tkn bytes into r16..r23.
-    LOAD_BLOCK()
+    LOAD_BLOCK("z")
     // permute tkn
     PERMUTE_TKN()
     // store r16...r23 into tkn
-    STORE_BLOCK()
+    STORE_BLOCK("z")
 
     : : "z"(tkn)
     :   "r8",  "r9", "r10", "r11", "r16", "r17", "r18", "r19", "r20", "r21",
@@ -160,11 +160,11 @@ void inv_permute_tkn(uint8_t *tkn)
   __asm__ __volatile__
   (
     // load the tkn bytes into r16..r23.
-    LOAD_BLOCK()
+    LOAD_BLOCK("z")
     // inverse permute tkn
     INV_PERMUTE_TKN()
     // store r16...r23 into tkn
-    STORE_BLOCK()
+    STORE_BLOCK("z")
 
     : : "z"(tkn)
     :   "r8",  "r9", "r10", "r11", "r16", "r17", "r18", "r19", "r20", "r21",
@@ -231,7 +231,7 @@ void skinny_set_tk1(uint8_t *round_key, uint8_t *round_constant, uint8_t *tk1,
   __asm__ __volatile__
   (
     // Load the TK1 bytes into r16..r23.
-    LOAD_BLOCK()
+    LOAD_BLOCK("z")
 
     // Generate the rc value for the next round.
     // rc = (rc << 1) ^ ((rc >> 5) & 0x01) ^ ((rc >> 4) & 0x01) ^ 0x01;
@@ -269,7 +269,7 @@ void skinny_set_tk1(uint8_t *round_key, uint8_t *round_constant, uint8_t *tk1,
     // Permute TK1 for the next round.
     PERMUTE_TKN()
 
-    STORE_BLOCK()
+    STORE_BLOCK("z")
 
     //"ldi ZL, lo8(test)\n"
 
@@ -284,7 +284,7 @@ void skinny_set_tk2(uint8_t *round_key, uint8_t *tk2)
   __asm__ __volatile__
   (
     // Load the TK2 bytes into r16..r23.
-    LOAD_BLOCK()
+    LOAD_BLOCK("z")
 
     // XOR the first two rows of TK2 with the key schedule.
     "ld __tmp_reg__,X\n"
@@ -309,7 +309,7 @@ void skinny_set_tk2(uint8_t *round_key, uint8_t *tk2)
     LFSR2("r18")
     LFSR2("r19")
 
-    STORE_BLOCK()
+    STORE_BLOCK("z")
 
     : : "x"(round_key), "z"(tk2)
     :   "r8",  "r9", "r10", "r11", "r16", "r17", "r18", "r19", "r20", "r21",
