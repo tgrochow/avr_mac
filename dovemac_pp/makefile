@@ -1,13 +1,8 @@
 # config________________________________________________________________________
 
-TARGET=dovemac_pp
-MCU=atmega2560
-FCPU=16000000
-PROGRAMMER=wiring
-PORT=/dev/ttyACM0
-PBAUD=115200
-SBAUD=9600
+include ../config
 
+TARGET=dovemac_pp
 BINDIR=bin
 LIBDIR=lib
 OBJDIR=build

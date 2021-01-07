@@ -1,6 +1,5 @@
 all:
 	cd uart        && $(MAKE)
-	cd template    && $(MAKE)
 	cd crypto_util && $(MAKE)
 	cd skinny      && $(MAKE)
 	cd dovemac     && $(MAKE)
@@ -9,7 +8,6 @@ all:
 
 clean:
 	cd uart        && $(MAKE) clean
-	cd template    && $(MAKE) clean
 	cd crypto_util && $(MAKE) clean
 	cd skinny      && $(MAKE) clean
 	cd dovemac     && $(MAKE) clean

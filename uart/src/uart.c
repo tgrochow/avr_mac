@@ -86,6 +86,7 @@ void serial_print_byte_array(const uint8_t* array, size_t array_length)
 
 void serial_print_test_result(const char* test_description, uint8_t success)
 {
+  serial_print("  ");
   serial_print(test_description);
   if (success)
   {

@@ -1,5 +1,7 @@
 *
 !*/
 !makefile
+!config
+!readme.md
 !*.h
 !*.c

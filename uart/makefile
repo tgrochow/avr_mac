@@ -1,8 +1,6 @@
-TARGET=uart
-MCU=atmega2560
-FCPU=16000000
-SBAUD=9600
+include ../config
 
+TARGET=uart
 LIBDIR=lib
 OBJDIR=build
 SRCDIR=src

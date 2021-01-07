@@ -1,13 +1,8 @@
 # config________________________________________________________________________
 
-TARGET=crypto_util
-MCU=atmega2560
-FCPU=16000000
-PROGRAMMER=wiring
-PORT=/dev/ttyACM0
-PBAUD=115200
-SBAUD=9600
+include ../config
 
+TARGET=crypto_util
 BINDIR=bin
 LIBDIR=lib
 OBJDIR=build

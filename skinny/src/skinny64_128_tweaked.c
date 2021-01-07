@@ -482,6 +482,10 @@ void skinny_xor_tk1(const uint8_t *key)
     "ld __tmp_reg__,X\n"
     "eor __tmp_reg__,r18\n"
     "st X+,__tmp_reg__\n"
+    "ld __tmp_reg__,X\n"
+    "eor __tmp_reg__,r19\n"
+    "st X+,__tmp_reg__\n"
+
 
     // Permute TK1 for the next round.
     PERMUTE_TKn()

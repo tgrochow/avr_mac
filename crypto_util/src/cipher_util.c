@@ -176,7 +176,7 @@ void calc_next_rc(uint8_t *rc)
 {
   __asm__ __volatile__
   (
-     // Generate the rc value for the next round.
+    // Generate the rc value for the next round.
     // rc = (rc << 1) ^ ((rc >> 5) & 0x01) ^ ((rc >> 4) & 0x01) ^ 0x01;
     "ld r25,Y\n"
     "clr r24\n"
@@ -233,6 +233,9 @@ void skinny_set_tk1(uint8_t *round_key, uint8_t *round_constant, uint8_t *tk1,
     // Load the TK1 bytes into r16..r23.
     LOAD_BLOCK("z")
 
+    "ldd r29,%A2\n"
+    "ldd r28,%B2\n"
+
     // Generate the rc value for the next round.
     // rc = (rc << 1) ^ ((rc >> 5) & 0x01) ^ ((rc >> 4) & 0x01) ^ 0x01;
     "ld r25,Y\n"
@@ -271,9 +274,9 @@ void skinny_set_tk1(uint8_t *round_key, uint8_t *round_constant, uint8_t *tk1,
 
     STORE_BLOCK("z")
 
-    //"ldi ZL, lo8(test)\n"
+    //"ldi ZL, lo8(SKINNY_STATE.rc)\n"
 
-    : : "x"(round_key), "y"(round_constant), "z"(tk1)
+    : : "x"(round_key), "z"(tk1), "Q"(round_constant), "Q"(tk2)
     :   "r8",  "r9", "r10", "r11", "r16", "r17", "r18", "r19", "r20", "r21",
         "r22", "r23", "r24", "r25", "memory"
   );
